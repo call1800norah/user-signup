@@ -16,58 +16,80 @@
 #
 import webapp2
 import cgi
+import string
 
 form= """
     <form method="post">
         <h2>Signup</h2>
         <label> Username
-        <input type="text" name="username">
+        <input type="text" name="username" value="%(username)s">
+        <span style="color: red">%(error)s</span>
         </label>
+
         <br>
         <label> Password
-        <input type="text" name="password" value="">
+        <input type="password" name="password" value="">
         </label>
+        <span style="color: red">%(error)s</span>
         <br>
         <label> Verify Password
-        <input type="text" name="verify" value="">
+        <input type="password" name="verify" value="">
         </label>
+        <span style="color: red">%(error)s</span>
         <br>
         <label> Email(optional)
-        <input type="text" name="email">
+        <input type="text" name="email" value="%(email)s">
         </label>
+        <span style="color: red">%(error)s</span>
         <br>
         <input type="submit"/>
     </form>
 """
 
-class MainHandler(webapp2.RequestHandler):
+def escape_html(s):
+    return cgi.escape(s,quote=True)
 
+class MainHandler(webapp2.RequestHandler):
+    def write_form(self, error='',username='',
+                   password='',verify='',email=''):
+        self.response.write(form % {"error":error,
+                                    "username":escape_html(username),
+                                    "password":escape_html(password),
+                                    "verify":escape_html(verify),
+                                    "email":escape_html(email)})
     def get(self):
 
-        error = self.request.get('error')
-        content = form + error
-        self.response.write(content)
-
+        self.write_form("")
 
     def post(self):
-        username = self.request.get('username')
+        username = self.request.get("username")
+        password = self.request.get("password")
+        verify = self.request.get("verify")
+        email = self.request.get("email")
+        #error = self.request.get("error")
+
         if (" " in username) or (username.strip() == ""):
-            error = "That's not a valid username."
-            error_escaped = cgi.escape(error, quote=True)
 
-            self.redirect("/?error=" + error_escaped)
+            self.write_form("That's not a valid username.",username )
 
-        password = self.request.get('password')
-        if " " in password:
-            error = "That wasn't a valid password."
-            error_escaped = cgi.escape(error,quote=True)
-            self.redirect("/?error=" + error_escaped)
 
-        verify = self.request.get('verify')
-        email = self.request.get('email')
+        elif password.strip() == "":
+            self.write_form("That wasn't a valid password.",password)
 
-        self.response.write(form)
 
+        elif password != verify:
+            self.write_form("Your password didn't match.",verify)
+
+        elif string.punctuation not in email:
+            self.write_form("That's not a valid email",email)
+
+        else:
+           self.redirect("/thanks")
+
+class ThanksHandler(webapp2.RequestHandler):
+    def get(self):
+         self.response.write("Welcome " + username)
 app = webapp2.WSGIApplication([
-    ('/', MainHandler)
+    ('/', MainHandler),
+    ('/thanks', ThanksHandler)
 ], debug=True)
