@@ -18,77 +18,82 @@ import webapp2
 import cgi
 import string
 
-form= """
-    <form method="post">
-        <h2>Signup</h2>
-        <label> Username
-        <input type="text" name="username" value="%(username)s">
-        <span style="color: red">%(error)s</span>
-        </label>
-
-        <br>
-        <label> Password
-        <input type="password" name="password" value="">
-        </label>
-        <span style="color: red">%(error)s</span>
-        <br>
-        <label> Verify Password
-        <input type="password" name="verify" value="">
-        </label>
-        <span style="color: red">%(error)s</span>
-        <br>
-        <label> Email(optional)
-        <input type="text" name="email" value="%(email)s">
-        </label>
-        <span style="color: red">%(error)s</span>
-        <br>
-        <input type="submit"/>
-    </form>
+form = """
+<form method= "post">
+<h2>Signup</h2>
+    <label> Username
+    <input type="text" name="username" value="%(username)s">
+    </label>
+    <span style="color: red">%(error)s</span>
+    <br>
+    <label> Password
+    <input type="password" name="password" value="">
+    </label>
+    <span style="color: red">%(erro)s</span>
+    <br>
+    <label> Verify Password
+    <input type="password" name="verify" value="">
+    </label>
+    <span style="color: red">%(err)s</span>
+    <br>
+    <label> Email(optional)
+    <input type="text" name="email" value="%(email)s">
+    </label>
+    <span style="color: red">%(er)s</span>
+    <br>
+    <input type="submit">
+</form>
 """
+def valid_username(username):
+    if (" " in username) or (username.strip() == ""):
+        return "That's not a valid username."
 
+def valid_password(password):
+    if password.strip() == "":
+        return "That was not a valid password."
+def valid_verify(verify):
+    if not verify:
+        return "Your password didn't match."
+def valid_email(email):
+    if string.punctuation not in email:
+        return "That's not a valid email."
 def escape_html(s):
     return cgi.escape(s,quote=True)
 
 class MainHandler(webapp2.RequestHandler):
-    def write_form(self, error='',username='',
-                   password='',verify='',email=''):
-        self.response.write(form % {"error":error,
-                                    "username":escape_html(username),
-                                    "password":escape_html(password),
-                                    "verify":escape_html(verify),
-                                    "email":escape_html(email)})
-    def get(self):
 
-        self.write_form("")
+    def write_form(self,error="",erro="",err="",er="",username="",email=""):
+        self.response.write(form % {"error":error,"username":escape_html(username),
+                                    "erro":erro,"err":err,
+                                    "er":er,"email":escape_html(email)})
+
+    def get(self):
+        self.write_form()
 
     def post(self):
-        username = self.request.get("username")
-        password = self.request.get("password")
-        verify = self.request.get("verify")
-        email = self.request.get("email")
-        #error = self.request.get("error")
+        user_username = self.request.get("username")
+        user_password = self.request.get("password")
+        user_verify = self.request.get("verify")
+        user_email = self.request.get("email")
 
-        if (" " in username) or (username.strip() == ""):
-
-            self.write_form("That's not a valid username.",username )
-
-
-        elif password.strip() == "":
-            self.write_form("That wasn't a valid password.",password)
-
-
-        elif password != verify:
-            self.write_form("Your password didn't match.",verify)
-
-        elif string.punctuation not in email:
-            self.write_form("That's not a valid email",email)
-
+        username = valid_username(user_username)
+        password =  valid_password(user_password)
+        verify = valid_verify(user_verify)
+        email = valid_email(user_email)
+        if not username:
+            self.write_form(username)
+        elif not password:
+            self.write_form(valid_password)
+        elif not verify:
+            self.write_form(valid_verify)
+        elif not email:
+            self.write_form(valid_email)
         else:
-           self.redirect("/thanks")
+            self.redirect("/thanks")
 
 class ThanksHandler(webapp2.RequestHandler):
     def get(self):
-         self.response.write("Welcome " + username)
+         self.response.write("Welcome ")
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/thanks', ThanksHandler)
