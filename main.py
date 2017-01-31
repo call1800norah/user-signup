@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+##!/usr/bin/env python
 #
 # Copyright 2007 Google Inc.
 #
@@ -52,7 +52,7 @@ def valid_username(username):
 PASS_RE = re.compile(r"^.{3,20}$")
 def valid_password(password):
     return password and PASS_RE.match(password)
-EMAIL_RE = re.compile(r"^[\s]+@[\s]+\.[\s]+$")
+EMAIL_RE = re.compile(r"^[\S]+@[\S]+.[\S]+$")
 def valid_email(email):
     return not email or EMAIL_RE.match(email)
 
@@ -90,12 +90,12 @@ class MainHandler(webapp2.RequestHandler):
 
         verify_error = ""
         if password != verify:
-            verify_error="Your password didn't match."
-            have_error = True
+             verify_error="Your passwords didn't match."
+             have_error = True
 
         email_error = ""
         if not valid_email(email):
-            email_error = "Your email is not a valid email."
+            email_error = "That's not a valid email."
             have_error = True
 
         if have_error:
@@ -103,12 +103,18 @@ class MainHandler(webapp2.RequestHandler):
                             verify_error=verify_error,email_error=email_error,
                             username=username,email=email)
         else:
-            self.redirect("/thanks")
+            self.redirect("/unit2/Welcome?username=" + username)
 
-class ThanksHandler(webapp2.RequestHandler):
+class WelcomeHandler(webapp2.RequestHandler):
+
     def get(self):
-         self.response.write("Welcome" )
+        username = self.request.get('username')
+        if valid_username(username):
+            content = "Welcome " + username
+            self.response.write(content)
+        else:
+            self.redirect('/unit2/signup')
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
-    ('/thanks', ThanksHandler)
+    ('/unit2/Welcome', WelcomeHandler)
 ], debug=True)
