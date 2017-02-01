@@ -110,10 +110,10 @@ class WelcomeHandler(webapp2.RequestHandler):
     def get(self):
         username = self.request.get('username')
         if valid_username(username):
-            content = "Welcome " + username
+            content = '<h1>' + "Welcome, " + username + "!" + '</h1>'
             self.response.write(content)
         else:
-            self.redirect('/unit2/signup')
+            self.redirect('/')
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/unit2/Welcome', WelcomeHandler)
